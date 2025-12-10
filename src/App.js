@@ -90,7 +90,7 @@ export default function PaymentUI() {
 
   // ----------------------------- Send Command via WebSocket ---------------------
   const sendCommand = async (cmd) => {
-    console.log(`HB/${machineNumber}`, cmd);
+    console.log(`HB/${machineNumber.current}`, cmd);
     addLog("SEND → " + cmd,);
      const message = JSON.stringify({ topic: `HB/${machineNumberRef.current}`, payload:cmd });
     wsRef.current?.send(message);
@@ -127,8 +127,8 @@ export default function PaymentUI() {
         <input
         type="text"
         placeholder="Enter Machine Number"
-        value={machineNumber}
-        onChange={(e) => setMachineNumber(e.target.value)}
+        onChange={(e) => machineNumberRef.current = e.target.value}
+        // onChange={(e) => setMachineNumber(e.target.value)}
         style={{
           padding: 8,
           width: "100%",
