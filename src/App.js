@@ -4,7 +4,8 @@ export default function PaymentUI() {
   const [amount, setAmount] = useState("");
   const [machineNumber, setMachineNumber] = useState("");
   const [log, setLog] = useState([]);
-  
+  const [KBDKvalues,setKBDKvalues]=useState({kbd1:10,kbd2:11,kbd3:20,kbd4:21});
+  const KBDKvaluesRef = useRef(KBDKvalues);
 
   const tidRef = useRef("");
   const machineNumberRef = useRef(machineNumber);
@@ -58,8 +59,9 @@ export default function PaymentUI() {
         console.log(parts);
         sendCommand("*SUCCESS#");
         setTimeout(()=>{
-          sendCommand(`*KBDK${tidRef.current},10,11,20,21#`);
+          sendCommand(`*KBDK${tidRef.current},${KBDKvaluesRef.current.kbd1},${KBDKvaluesRef.current.kbd2},${KBDKvaluesRef.current.kbd3},${KBDKvaluesRef.current.kbd4}#`);
         },1000)
+        tidRef.current = ""; // reset TID after use
         // setTimeout(()=>{
         //   startStatusPolling();
         // },1000)
@@ -116,6 +118,10 @@ export default function PaymentUI() {
     }, 3000);
   };
 
+  useEffect(()=>{
+    KBDKvaluesRef.current=KBDKvalues;
+  },[KBDKvalues])
+
   useEffect(() => {
     return () => clearInterval(intervalRef.current);
   }, []);
@@ -150,6 +156,15 @@ export default function PaymentUI() {
             fontSize: 16,
           }}
         />
+        <div>
+          <strong>KBDK Values:</strong>
+          <div style={{display:'flex',gap:10,marginTop:5}}>
+            <div>KBD1: <input type="number" value={KBDKvalues.kbd1} onChange={(e)=>setKBDKvalues(prev=>({...prev,kbd1:Number(e.target.value)}))} style={{width:60}}/></div>
+            <div>KBD2: <input type="number" value={KBDKvalues.kbd2} onChange={(e)=>setKBDKvalues(prev=>({...prev,kbd2:Number(e.target.value)}))} style={{width:60}}/></div>
+            <div>KBD3: <input type="number" value={KBDKvalues.kbd3} onChange={(e)=>setKBDKvalues(prev=>({...prev,kbd3:Number(e.target.value)}))} style={{width:60}}/></div>
+            <div>KBD4: <input type="number" value={KBDKvalues.kbd4} onChange={(e)=>setKBDKvalues(prev=>({...prev,kbd4:Number(e.target.value)}))} style={{width:60}}/></div>
+          </div>
+        </div>
 
         <button
           onClick={handleSend}
