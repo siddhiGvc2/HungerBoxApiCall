@@ -60,9 +60,9 @@ export default function PaymentUI() {
         setTimeout(()=>{
           sendCommand(`*KBDK${tidRef.current},10,11,20,21#`);
         },1000)
-        setTimeout(()=>{
-          startStatusPolling();
-        },1000)
+        // setTimeout(()=>{
+        //   startStatusPolling();
+        // },1000)
         return;
       }
     }
