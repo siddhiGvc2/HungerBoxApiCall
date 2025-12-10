@@ -7,6 +7,7 @@ export default function PaymentUI() {
   
 
   const tidRef = useRef("");
+  const machineNumberRef = useRef(machineNumber);
 
   const wsRef = useRef(null);
   const intervalRef = useRef(null);
@@ -38,17 +39,19 @@ export default function PaymentUI() {
     const pure = msg.replace("*", "").replace("#", "");
     const parts = pure.split(",");
     
-
+    console.log(parts);
+    console.log("TID REF:", tidRef.current);
     if (parts.length === 3) {
       const recvMachine = parts[0];
       const recvTid = parts[1];
       const status = parts[2];
 
-
+      console.log(typeof recvMachine, typeof machineNumberRef.current,typeof recvTid,);
+      console.log("Comparing:", recvMachine == machineNumberRef.current, recvTid == tidRef.current, status == "AmountReceived");
 
       // CHECK if matches our machine number + TID + AmountReceived
       if (
-        recvMachine == machineNumber &&
+        recvMachine == machineNumberRef.current &&
         recvTid == tidRef.current && // OR recvTid === tid if you use a separate TID
         status == "AmountReceived"
       ) {
@@ -57,9 +60,9 @@ export default function PaymentUI() {
         setTimeout(()=>{
           sendCommand(`*KBDK${tidRef.current},10,11,20,21#`);
         },1000)
-      setTimeout(()=>{
-        startStatusPolling();
-      },1000)
+        setTimeout(()=>{
+          startStatusPolling();
+        },1000)
         return;
       }
     }
@@ -89,7 +92,7 @@ export default function PaymentUI() {
   const sendCommand = async (cmd) => {
     console.log(`HB/${machineNumber}`, cmd);
     addLog("SEND → " + cmd,);
-     const message = JSON.stringify({ topic: `HB/${machineNumber}`, payload:cmd });
+     const message = JSON.stringify({ topic: `HB/${machineNumberRef.current}`, payload:cmd });
     wsRef.current?.send(message);
   };
 
