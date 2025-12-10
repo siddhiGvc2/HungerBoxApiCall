@@ -4,7 +4,7 @@ export default function PaymentUI() {
   const [amount, setAmount] = useState("");
   const [machineNumber, setMachineNumber] = useState("");
   const [log, setLog] = useState([]);
-  const [KBDKvalues,setKBDKvalues]=useState({kbd1:10,kbd2:11,kbd3:20,kbd4:21});
+  const [KBDKvalues,setKBDKvalues]=useState({kbd1:10,kbd2:11,kbd3:20,kbd4:21,kbd5:28});
   const KBDKvaluesRef = useRef(KBDKvalues);
 
   const tidRef = useRef("");
@@ -59,7 +59,7 @@ export default function PaymentUI() {
         console.log(parts);
         sendCommand("*SUCCESS#");
         setTimeout(()=>{
-          sendCommand(`*KBDK${tidRef.current},${KBDKvaluesRef.current.kbd1},${KBDKvaluesRef.current.kbd2},${KBDKvaluesRef.current.kbd3},${KBDKvaluesRef.current.kbd4}#`);
+          sendCommand(`*KBDK${tidRef.current},${KBDKvaluesRef.current.kbd1},${KBDKvaluesRef.current.kbd2},${KBDKvaluesRef.current.kbd3},${KBDKvaluesRef.current.kbd4},${KBDKvaluesRef.current.kbd5}#`);
         },1000)
         tidRef.current = ""; // reset TID after use
         // setTimeout(()=>{
@@ -128,7 +128,7 @@ export default function PaymentUI() {
 
   return (
     <div style={{width:'100%',display:'flex',justifyContent:'center'}}>
-      <div style={{ padding: 20, fontFamily: "Arial", maxWidth: 500,minWidth:400 }}>
+      <div style={{ padding: 20, fontFamily: "Arial", maxWidth: 500,minWidth:350 }}>
         <h2>Payment Command UI</h2>
         <input
         type="text"
@@ -163,6 +163,7 @@ export default function PaymentUI() {
             <div>KBD2: <input type="number" value={KBDKvalues.kbd2} onChange={(e)=>setKBDKvalues(prev=>({...prev,kbd2:Number(e.target.value)}))} style={{width:60}}/></div>
             <div>KBD3: <input type="number" value={KBDKvalues.kbd3} onChange={(e)=>setKBDKvalues(prev=>({...prev,kbd3:Number(e.target.value)}))} style={{width:60}}/></div>
             <div>KBD4: <input type="number" value={KBDKvalues.kbd4} onChange={(e)=>setKBDKvalues(prev=>({...prev,kbd4:Number(e.target.value)}))} style={{width:60}}/></div>
+            <div>KBD5: <input type="number" value={KBDKvalues.kbd5} onChange={(e)=>setKBDKvalues(prev=>({...prev,kbd5:Number(e.target.value)}))} style={{width:60}}/></div>
           </div>
         </div>
 
