@@ -3,100 +3,80 @@ import { useState, useEffect, useRef } from "react";
 export default function PaymentUI() {
   const [amount, setAmount] = useState("");
   const [machineNumber, setMachineNumber] = useState("");
-  const [log, setLog] = useState([]);
   const [KBDKvalues,setKBDKvalues]=useState({kbd1:10,kbd2:11,kbd3:20,kbd4:21,kbd5:28});
   const KBDKvaluesRef = useRef(KBDKvalues);
 
   const tidRef = useRef("");
   const machineNumberRef = useRef(machineNumber);
 
-  const wsRef = useRef(null);
+  
   const intervalRef = useRef(null);
 
-  const addLog = (msg) =>
-    setLog((prev) => [...prev, `[${new Date().toLocaleTimeString()}] ${msg}`]);
+ 
 
   const generateTID = () => {
   return Math.floor(100000 + Math.random() * 900000).toString(); // 6 digit random
 };
 
 
-  // ----------------------------- WebSocket Connect ------------------------------
-  const connectWebSocket = () => {
-    const ws = new WebSocket("ws://snackboss-iot.in:3030"); // <-- your WS URL here
-    wsRef.current = ws;
 
-    ws.onopen = () => {
-      addLog("✅ WebSocket Connected");
-    };
-
-    ws.onmessage = (evt) => {
-    const msg = evt.data.trim();
-    addLog("RECV ← " + msg);
-        // --- AUTO RULE 1: When AmountReceived comes, send SUCCESS ---
-
-        if (msg.startsWith("*") && msg.endsWith("#")) {
-
-    const pure = msg.replace("*", "").replace("#", "");
-    const parts = pure.split(",");
-    
-    console.log(parts);
-    console.log("TID REF:", tidRef.current);
-    if (parts.length === 3) {
-      const recvMachine = parts[0];
-      const recvTid = parts[1];
-      const status = parts[2];
-
-      console.log(typeof recvMachine, typeof machineNumberRef.current,typeof recvTid,);
-      console.log("Comparing:", recvMachine == machineNumberRef.current, recvTid == tidRef.current, status == "AmountReceived");
-
-      // CHECK if matches our machine number + TID + AmountReceived
-      if (
-        recvMachine == machineNumberRef.current &&
-        recvTid == tidRef.current && // OR recvTid === tid if you use a separate TID
-        status == "AmountReceived"
-      ) {
-        console.log(parts);
-        sendCommand("*SUCCESS#");
-        setTimeout(()=>{
-          sendCommand(`*KBDK${tidRef.current},${KBDKvaluesRef.current.kbd1},${KBDKvaluesRef.current.kbd2},${KBDKvaluesRef.current.kbd3},${KBDKvaluesRef.current.kbd4},${KBDKvaluesRef.current.kbd5}#`);
-        },1000)
-        tidRef.current = ""; // reset TID after use
-        // setTimeout(()=>{
-        //   startStatusPolling();
-        // },1000)
-        return;
+async function createOrderAndCheckWebhook(machineId, tid, amount) {
+  try {
+    // 1. POST ORDER API
+    const postRes = await fetch(
+      `https://demo.provend.in/api/v1/machines/${machineId}/orders`,
+      {
+        method: "POST",
+        headers: {
+          "accept": "application/json",
+          "Content-Type": "application/json",
+          "Api-Key": "client-hungerbox-api-key-12345",
+        },
+        body: JSON.stringify({
+          txn_id: tid,
+          amount: amount,
+          items: [{"x":KBDKvaluesRef.current.kbd1,'y':KBDKvaluesRef.current.kbd2},{"x":KBDKvaluesRef.current.kbd3,"y":KBDKvaluesRef.current.kbd4}],
+        }),
       }
-    }
+    );
+
+    const postData = await postRes.json();
+    if(!postRes.ok){
+     
+      alert("Failed to create order: " + (postData.message || "Unknown error"));
+      //  throw new Error(postData.message || "Failed to create order");
+    } 
+    console.log("POST Order Response:", postData);
+
+    // 2. WAIT 10 SECONDS
+    console.log("Waiting 10 seconds...");
+    await new Promise((res) => setTimeout(res, 10000));
+
+    // 3. GET WEBHOOK TEST API
+    const webhookRes = await fetch(
+      "https://demo.provend.in/api/v1/transactions/webhook-test-002",
+      {
+        method: "GET",
+        headers: {
+          "Api-Key": "client-hungerbox-api-key-12345",
+        },
+      }
+    );
+
+    const webhookData = await webhookRes.json();
+    console.log("GET Webhook Response:", webhookData);
+
+    return { postData, webhookData };
+  } catch (error) {
+    console.error("API error:", error);
+    alert("API error: " + error.message);
+    return null;
   }
-  
-    };
+}
 
-    ws.onerror = (err) => {
-      addLog("❌ WebSocket Error");
-    };
 
-    ws.onclose = () => {
-      addLog("🔌 WebSocket Disconnected — retrying in 3 sec...");
-      setTimeout(connectWebSocket, 3000);
-    };
-  };
 
-  useEffect(() => {
-    connectWebSocket();
-
-    return () => {
-      if (wsRef.current) wsRef.current.close();
-    };
-  }, []);
-
-  // ----------------------------- Send Command via WebSocket ---------------------
-  const sendCommand = async (cmd) => {
-    console.log(`HB/${machineNumber.current}`, cmd);
-    addLog("SEND → " + cmd,);
-     const message = JSON.stringify({ topic: `HB/${machineNumberRef.current}`, payload:cmd });
-    wsRef.current?.send(message);
-  };
+ 
 
   // ----------------------------- Handle SEND Button -----------------------------
   const handleSend = async () => {
@@ -104,19 +84,15 @@ export default function PaymentUI() {
     const newTid = generateTID();
     tidRef.current = newTid;
 
-    const vendCommand = `*VEND,${newTid},PAYTM,${amount}00,${newTid}#`;
+    createOrderAndCheckWebhook(machineNumberRef.current, newTid, 100)
+    .then((data) => {
+      console.log("Final Output:", data);
+    });
    
-    await sendCommand(vendCommand);
+    
   };
 
-  // ----------------------------- Poll Status Every 3 Sec ------------------------
-  const startStatusPolling = () => {
-    if (intervalRef.current) return;
-
-    intervalRef.current = setInterval(() => {
-      sendCommand("*MVSTATUS?#");
-    }, 3000);
-  };
+ 
 
   useEffect(()=>{
     KBDKvaluesRef.current=KBDKvalues;
@@ -181,21 +157,7 @@ export default function PaymentUI() {
           SEND
         </button>
 
-        <h3 style={{ marginTop: 20 }}>Logs</h3>
-        <button onClick={()=>setLog([])}>Clear Log</button>
-        <div
-          style={{
-            background: "#eee",
-            padding: 10,
-            height: 200,
-            overflowY: "auto",
-            fontSize: 14,
-          }}
-        >
-          {log.map((line, i) => (
-            <div key={i}>{line}</div>
-          ))}
-        </div>
+      
       </div>
     </div>
   );
