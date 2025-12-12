@@ -5,6 +5,9 @@ export default function PaymentUI() {
   const [machineNumber, setMachineNumber] = useState("");
   const [KBDKvalues,setKBDKvalues]=useState({kbd1:10,kbd2:11,kbd3:20,kbd4:21,kbd5:28});
   const KBDKvaluesRef = useRef(KBDKvalues);
+  const [log, setLog] = useState([]);
+
+  const wsRef = useRef(null);
 
   const tidRef = useRef("");
   const machineNumberRef = useRef(machineNumber);
@@ -13,10 +16,66 @@ export default function PaymentUI() {
   const intervalRef = useRef(null);
 
  
+  const addLog = (msg) =>
+    setLog((prev) => [...prev, `[${new Date().toLocaleTimeString()}] ${msg}`]);
 
   const generateTID = () => {
   return Math.floor(100000 + Math.random() * 900000).toString(); // 6 digit random
 };
+
+
+ // ----------------------------- WebSocket Connect ------------------------------
+  const connectWebSocket = () => {
+    const ws = new WebSocket("ws://snackboss-iot.in:3030"); // <-- your WS URL here
+    wsRef.current = ws;
+
+    ws.onopen = () => {
+      addLog("✅ WebSocket Connected");
+    };
+
+    ws.onmessage = (evt) => {
+    const msg = evt.data.trim();
+    addLog("RECV ← " + msg);
+        // --- AUTO RULE 1: When AmountReceived comes, send SUCCESS ---
+
+        if (msg.startsWith("*") && msg.endsWith("#")) {
+
+    const pure = msg.replace("*", "").replace("#", "");
+    const parts = pure.split(",");
+    
+    console.log(parts);
+    console.log("TID REF:", tidRef.current);
+    if (parts.length === 3) {
+      const recvMachine = parts[0];
+      const recvTid = parts[1];
+      const status = parts[2];
+
+      console.log(typeof recvMachine, typeof machineNumberRef.current,typeof recvTid,);
+      console.log("Comparing:", recvMachine == machineNumberRef.current, recvTid == tidRef.current, status == "AmountReceived");
+
+      
+    }
+  }
+  
+    };
+
+    ws.onerror = (err) => {
+      addLog("❌ WebSocket Error");
+    };
+
+    ws.onclose = () => {
+      addLog("🔌 WebSocket Disconnected — retrying in 3 sec...");
+      setTimeout(connectWebSocket, 3000);
+    };
+  };
+
+  useEffect(() => {
+    connectWebSocket();
+
+    return () => {
+      if (wsRef.current) wsRef.current.close();
+    };
+  }, []);
 
 
 
@@ -160,7 +219,21 @@ async function createOrderAndCheckWebhook(machineId, tid, amount) {
         >
           SEND
         </button>
-
+        <h3 style={{ marginTop: 20 }}>Logs</h3>
+        <button onClick={()=>setLog([])}>Clear Log</button>
+        <div
+          style={{
+            background: "#eee",
+            padding: 10,
+            height: 200,
+            overflowY: "auto",
+            fontSize: 14,
+          }}
+        >
+          {log.map((line, i) => (
+            <div key={i}>{line}</div>
+          ))}
+        </div>
       
       </div>
     </div>
