@@ -168,7 +168,7 @@ async function createOrderAndCheckWebhook(machineId, tid, amount) {
   return (
     <div style={{width:'100%',display:'flex',justifyContent:'center'}}>
       <div style={{ padding: 20, fontFamily: "Arial", maxWidth: 500,minWidth:350 }}>
-        <h2>Payment Command UI</h2>
+        <h2>Payment Command UI for Provend</h2>
         <input
         type="text"
         placeholder="Enter Machine Number"
