@@ -35,7 +35,11 @@ async function createOrderAndCheckWebhook(machineId, tid, amount) {
         body: JSON.stringify({
           txn_id: tid,
           amount: amount,
-          items: [{"x":KBDKvaluesRef.current.kbd1,'y':KBDKvaluesRef.current.kbd2},{"x":KBDKvaluesRef.current.kbd3,"y":KBDKvaluesRef.current.kbd4}],
+          items: [{"x":parseInt(KBDKvaluesRef.current.kbd1/10),'y':KBDKvaluesRef.current.kbd1%10},
+                  {"x":parseInt(KBDKvaluesRef.current.kbd2/10),"y":KBDKvaluesRef.current.kbd2%10},
+                  {"x":parseInt(KBDKvaluesRef.current.kbd3/10),'y':KBDKvaluesRef.current.kbd3%10},
+                  {"x":parseInt(KBDKvaluesRef.current.kbd4/10),'y':KBDKvaluesRef.current.kbd4%10},
+                  {"x":parseInt(KBDKvaluesRef.current.kbd5/10),'y':KBDKvaluesRef.current.kbd5%10}],
         }),
       }
     );
