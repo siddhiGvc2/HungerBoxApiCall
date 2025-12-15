@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 
 export default function PaymentUI() {
   const [amount, setAmount] = useState("");
+  const [host,setHost]=useState("demo.provend.in");
   const [machineNumber, setMachineNumber] = useState("");
   const [KBDKvalues,setKBDKvalues]=useState({kbd1:10,kbd2:11,kbd3:20,kbd4:21,kbd5:28});
   const KBDKvaluesRef = useRef(KBDKvalues);
@@ -83,7 +84,7 @@ async function createOrderAndCheckWebhook(machineId, tid, amount) {
   try {
     // 1. POST ORDER API
     const postRes = await fetch(
-      `https://demo.provend.in/api/v1/machines/${machineId}/orders`,
+      `https://${host}/api/v1/machines/${machineId}/orders`,
       {
         method: "POST",
         headers: {
@@ -169,6 +170,24 @@ async function createOrderAndCheckWebhook(machineId, tid, amount) {
     <div style={{width:'100%',display:'flex',justifyContent:'center'}}>
       <div style={{ padding: 20, fontFamily: "Arial", maxWidth: 500,minWidth:350 }}>
         <h2>Payment Command UI for Provend</h2>
+        <div className="select-wrapper">
+      <label className="select-label">Choose API Sever</label>
+
+      <select
+        className="select-input"
+        value={host}
+        onChange={(e) => setHost(e.target.value)}
+      >
+        <option value="" disabled>
+          -- Select an option --
+        </option>
+        <option value="demo.provend.in">Provend API</option>
+        <option value="64.227.136.220:3000">GVC API</option>
+       
+      </select>
+
+      {host && <p className="selected-text">Selected: {host}</p>}
+    </div>
         <input
         type="text"
         placeholder="Enter Machine Number"
