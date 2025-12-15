@@ -148,7 +148,7 @@ async function createOrderAndCheckWebhook(machineId, tid, amount) {
     const newTid = generateTID();
     tidRef.current = newTid;
 
-    createOrderAndCheckWebhook(machineNumberRef.current, newTid, 100)
+    createOrderAndCheckWebhook(machineNumberRef.current, newTid, amount*100)
     .then((data) => {
       console.log("Final Output:", data);
     });
