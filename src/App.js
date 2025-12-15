@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 
 export default function PaymentUI() {
   const [amount, setAmount] = useState("");
-  const [host,setHost]=useState("demo.provend.in");
+  const [host,setHost]=useState("https://demo.provend.in");
   const [machineNumber, setMachineNumber] = useState("");
   const [KBDKvalues,setKBDKvalues]=useState({kbd1:10,kbd2:11,kbd3:20,kbd4:21,kbd5:28});
   const KBDKvaluesRef = useRef(KBDKvalues);
@@ -84,7 +84,7 @@ async function createOrderAndCheckWebhook(machineId, tid, amount) {
   try {
     // 1. POST ORDER API
     const postRes = await fetch(
-      `https://${host}/api/v1/machines/${machineId}/orders`,
+      `${host}/api/v1/machines/${machineId}/orders`,
       {
         method: "POST",
         headers: {
@@ -118,7 +118,7 @@ async function createOrderAndCheckWebhook(machineId, tid, amount) {
 
     // 3. GET WEBHOOK TEST API
     const webhookRes = await fetch(
-      "https://demo.provend.in/api/v1/transactions/webhook-test-002",
+      `${host}/api/v1/transactions/webhook-test-002`,
       {
         method: "GET",
         headers: {
@@ -181,8 +181,8 @@ async function createOrderAndCheckWebhook(machineId, tid, amount) {
         <option value="" disabled>
           -- Select an option --
         </option>
-        <option value="demo.provend.in">Provend API</option>
-        <option value="64.227.136.220:3000">GVC API</option>
+        <option value="https://demo.provend.in">Provend API</option>
+        <option value="http://64.227.136.220:3000">GVC API</option>
        
       </select>
 
